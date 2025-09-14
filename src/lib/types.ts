@@ -16,3 +16,10 @@ export type InventoryStats = {
   expired: number;
   donationReady: number;
 };
+
+export type ExtractedProductInfo = {
+    productName: string;
+    batchId: string;
+    mfgDate: string;
+    expDate: string;
+};

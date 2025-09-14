@@ -1,6 +1,7 @@
 "use server";
 
 import { suggestInventoryActions } from "@/ai/flows/suggest-inventory-actions";
+import { extractProductInfoFromImage } from "@/ai/flows/extract-product-info-from-image";
 import { type Product } from "@/lib/types";
 import { format } from "date-fns";
 
@@ -17,4 +18,14 @@ export async function getAISuggestion(product: Product) {
     console.error("Error getting AI suggestion:", error);
     return { success: false, error: "Failed to get AI suggestion." };
   }
+}
+
+export async function extractProductInfo(imageDataUri: string) {
+    try {
+        const extractedData = await extractProductInfoFromImage({ imageDataUri });
+        return { success: true, data: extractedData };
+    } catch (error) {
+        console.error("Error extracting product info:", error);
+        return { success: false, error: "Failed to extract product info." };
+    }
 }

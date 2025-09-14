@@ -20,9 +20,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { type Product } from "@/lib/types";
+import { type Product, type ExtractedProductInfo } from "@/lib/types";
 import { DatePicker } from "@/components/ui/date-picker";
 import { PlusCircle } from "lucide-react";
+import { CameraScanner } from "./camera-scanner";
+import { Separator } from "./ui/separator";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Product name must be at least 2 characters." }),
@@ -51,20 +53,42 @@ export function ProductForm({ addProduct }: ProductFormProps) {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     addProduct(values);
-    form.reset();
+    form.reset({ name: "", batchId: "", quantity: 1, mfgDate: undefined, expDate: undefined });
   }
+
+  const handleScan = (data: ExtractedProductInfo) => {
+    form.setValue("name", data.productName);
+    form.setValue("batchId", data.batchId);
+    // Dates from AI might be strings, so we parse them.
+    // We add a day to account for timezone issues where parsing might result in the previous day.
+    const mfg = new Date(data.mfgDate);
+    mfg.setDate(mfg.getDate() + 1);
+    const exp = new Date(data.expDate);
+    exp.setDate(exp.getDate() + 1);
+    
+    form.setValue("mfgDate", mfg);
+    form.setValue("expDate", exp);
+  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Add New Product</CardTitle>
         <CardDescription>
-          Simulate scanning a product label by filling out the form below.
+          Scan a product or fill out the form below.
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="space-y-4">
+          <CameraScanner onScan={handleScan} />
+          <div className="flex items-center space-x-2">
+            <Separator className="flex-1" />
+            <span className="text-xs text-muted-foreground">OR</span>
+            <Separator className="flex-1" />
+          </div>
+        </div>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
             <FormField
               control={form.control}
               name="name"
