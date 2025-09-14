@@ -15,7 +15,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis } from "recharts";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, LineChart, Line, CartesianGrid } from "recharts";
 import { getAISuggestion } from "@/app/actions";
 import { Loader2 } from "lucide-react";
 import {
@@ -84,6 +84,14 @@ export function InventoryAnalysis({ products }: InventoryAnalysisProps) {
     });
     return data;
   }, [nearExpiryProducts]);
+
+  const cumulativeExpiriesData = useMemo(() => {
+    let cumulativeCount = 0;
+    return upcomingExpiriesData.map(d => {
+        cumulativeCount += d.count;
+        return { ...d, cumulative: cumulativeCount };
+    });
+  }, [upcomingExpiriesData]);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -168,24 +176,46 @@ export function InventoryAnalysis({ products }: InventoryAnalysisProps) {
                 ))}
             </div>
           </div>
-          <div className="lg:col-span-2">
-            <h3 className="text-lg font-semibold mb-2">Upcoming Expiries</h3>
-             <div className="h-60 w-full">
-                {upcomingExpiriesData.length > 0 ? (
-                     <ChartContainer config={{}} className="h-full w-full">
-                        <BarChart data={upcomingExpiriesData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+          <div className="lg:col-span-2 space-y-8">
+             <div>
+                <h3 className="text-lg font-semibold mb-2">Upcoming Expiries (Daily)</h3>
+                <div className="h-60 w-full">
+                    {upcomingExpiriesData.length > 0 ? (
+                        <ChartContainer config={{}} className="h-full w-full">
+                            <BarChart data={upcomingExpiriesData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
+                                <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
+                                <ChartTooltip content={<ChartTooltipContent />} />
+                                <Bar dataKey="count" fill="hsl(var(--chart-2))" radius={4} />
+                            </BarChart>
+                        </ChartContainer>
+                    ) : (
+                        <div className="flex h-full items-center justify-center text-muted-foreground">
+                            No products are nearing expiry.
+                        </div>
+                    )}
+                </div>
+             </div>
+          </div>
+          <div className="md:col-span-2 lg:col-span-3">
+            <h3 className="text-lg font-semibold mb-2">Upcoming Expiries (Cumulative)</h3>
+            <div className="h-60 w-full">
+                {cumulativeExpiriesData.length > 0 ? (
+                    <ChartContainer config={{}} className="h-full w-full">
+                        <LineChart data={cumulativeExpiriesData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                            <CartesianGrid vertical={false} />
                             <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
                             <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
                             <ChartTooltip content={<ChartTooltipContent />} />
-                            <Bar dataKey="count" fill="hsl(var(--chart-2))" radius={4} />
-                        </BarChart>
-                     </ChartContainer>
+                            <Line type="monotone" dataKey="cumulative" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} />
+                        </LineChart>
+                    </ChartContainer>
                 ) : (
                     <div className="flex h-full items-center justify-center text-muted-foreground">
                         No products are nearing expiry.
                     </div>
                 )}
-             </div>
+            </div>
           </div>
         </div>
         <div>
