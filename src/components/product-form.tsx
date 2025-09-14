@@ -48,6 +48,8 @@ export function ProductForm({ addProduct }: ProductFormProps) {
       name: "",
       batchId: "",
       quantity: 1,
+      mfgDate: undefined,
+      expDate: undefined,
     },
   });
 
